@@ -19,9 +19,6 @@ Open source. Built with Claude Code. One button to undo.
 > **This is a fork for Android 7 TVs.** The original [Free My TV](https://github.com/simbasjungles/free-my-tv) needs
 > Android 8 or newer. This fork (branch `android7`) also runs on **Android 7.0**, made and tested on a
 > **Sony BRAVIA 4K 2015** in Brazil. Everything below the fork notes is the original README.
->
-> **Em português:** este fork faz o Free My TV rodar em TVs com **Android 7.0**. Foi feito e testado numa
-> **Sony BRAVIA 4K 2015** no Brasil. O projeto original exige Android 8 ou mais novo.
 
 ## About this fork
 
