@@ -692,6 +692,13 @@ final class HomeApps {
         // Sony: its TV app (the launcher tile's) knows the last input and channel. A tuner's channel list can be an empty
         // one: a BRAVIA lists DvbOpv1 (the CI+ operator input) beside the satellite and antenna ones (#340).
         if (RemoteKeys.SONY) {
+            // A 2015 BRAVIA (Android 7) opens its TV app on "Tonight's highlights"; the remote's TV button sends the
+            // tuner's channels to its player instead, which plays the last channel. The same here.
+            ComponentName player = new ComponentName("com.sony.dtv.tvx", "com.sony.dtv.tvx.tvplayer.main.TvxLauncherActivity");
+            String sonyTuner = Build.VERSION.SDK_INT < 26 ? tunerInput(c) : null;
+            if (sonyTuner != null && exists(c, player)) {
+                return new Intent(Intent.ACTION_VIEW, TvContract.buildChannelsUriForInput(sonyTuner)).setComponent(player);
+            }
             Intent sony = launchIntent(pm, "com.sony.dtv.tvx");
             if (sony != null) return sony;
         }
