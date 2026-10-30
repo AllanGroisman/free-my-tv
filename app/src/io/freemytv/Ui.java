@@ -88,8 +88,12 @@ final class Ui {
     private static Typeface font(AssetManager a, int opticalSize, int weight) {
         if (has(a, FONT)) {
             try {
-                Typeface t = new Typeface.Builder(a, FONT)
-                        .setFontVariationSettings("'opsz' " + opticalSize + ", 'wght' " + weight).build();
+                Typeface t;
+                if (Build.VERSION.SDK_INT >= 26) t = Variable.create(a, opticalSize, weight);
+                else {   // Android 7: no variation settings, so Inter at its default weight, made bold from 600
+                    t = Typeface.createFromAsset(a, FONT);
+                    if (weight >= 600) t = Typeface.create(t, Typeface.BOLD);
+                }
                 if (t != null) return t;
             } catch (RuntimeException ignored) {
             }
@@ -103,6 +107,14 @@ final class Ui {
     private static final class Weighted {
         static Typeface create(int weight) {
             return Typeface.create(Typeface.DEFAULT, weight, false);
+        }
+    }
+
+    /** The same for Typeface.Builder, Android 8+, so Ui still verifies on Android 7. */
+    private static final class Variable {
+        static Typeface create(AssetManager a, int opticalSize, int weight) {
+            return new Typeface.Builder(a, FONT)
+                    .setFontVariationSettings("'opsz' " + opticalSize + ", 'wght' " + weight).build();
         }
     }
 

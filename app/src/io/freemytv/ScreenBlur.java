@@ -2,6 +2,7 @@ package io.freemytv;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Handler;
 import android.view.PixelCopy;
 
@@ -20,6 +21,10 @@ final class ScreenBlur {
     }
 
     static void capture(Activity a, Handler on, Done done) {
+        if (Build.VERSION.SDK_INT < 26) {   // PixelCopy of a window is Android 8+
+            done.run(null);
+            return;
+        }
         final Bitmap small = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);
         try {
             PixelCopy.request(a.getWindow(), small, result -> {

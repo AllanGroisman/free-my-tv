@@ -445,8 +445,19 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         }
     };
 
+    /** Only this class touches the Android 8 registration with a Handler, so HomeView still verifies on Android 7. */
+    private static final class Net {
+        static void register(ConnectivityManager cm, ConnectivityManager.NetworkCallback cb, Handler h) {
+            cm.registerDefaultNetworkCallback(cb, h);
+        }
+    }
+
     /** Wi-Fi or Ethernet, for the icon at the top; none when the TV has no network. */
     private void setNetwork(int type) {
+        if (Looper.myLooper() != handler.getLooper()) {   // Android 7 calls the network callback on its own thread
+            handler.post(() -> setNetwork(type));
+            return;
+        }
         if (type == network) return;
         network = type;
         status.invalidate();
@@ -516,7 +527,8 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         if (connectivity != null && !networkRegistered) {
             try {
                 if (connectivity.getActiveNetwork() == null) setNetwork(0);
-                connectivity.registerDefaultNetworkCallback(networkCallback, handler);
+                if (Build.VERSION.SDK_INT >= 26) Net.register(connectivity, networkCallback, handler);
+                else connectivity.registerDefaultNetworkCallback(networkCallback);   // Android 7: no handler (see setNetwork)
                 networkRegistered = true;
             } catch (RuntimeException ignored) {
             }

@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.tv.TvContract;
 import android.net.Uri;
+import android.os.Build;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,7 +71,7 @@ final class WatchNext {
     }
 
     static boolean allowed(Context c) {
-        return c.checkSelfPermission(PERMISSION) == PackageManager.PERMISSION_GRANTED;
+        return Build.VERSION.SDK_INT >= 26 && c.checkSelfPermission(PERMISSION) == PackageManager.PERMISSION_GRANTED;
     }
 
     /** Everything to show, newest first (off the main thread: these are content provider queries). */

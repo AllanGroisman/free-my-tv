@@ -2,6 +2,7 @@ package io.freemytv;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.view.KeyEvent;
 
 import java.io.BufferedReader;
@@ -241,12 +242,14 @@ final class Prefs {
     // MARK: - Top of the home screen
 
     static final String TOP_PICKS = "picks", TOP_CONTINUE = "continue", TOP_NONE = "none";
-    static final String[] TOP_CONTENT = {TOP_PICKS, TOP_CONTINUE, TOP_NONE};
+    // Continue Watching reads Android TV's Watch Next lists, which Android 7 doesn't have.
+    static final String[] TOP_CONTENT = Build.VERSION.SDK_INT >= 26
+            ? new String[] {TOP_PICKS, TOP_CONTINUE, TOP_NONE} : new String[] {TOP_PICKS, TOP_NONE};
 
     /** What the cards under the title show: the recommendations (TMDB), what you were watching in your apps, or nothing. */
     static String topContent() {
         String v = sp().getString("topContent", TOP_PICKS);
-        return v.equals(TOP_CONTINUE) || v.equals(TOP_NONE) ? v : TOP_PICKS;
+        return v.equals(TOP_CONTINUE) && Build.VERSION.SDK_INT >= 26 || v.equals(TOP_NONE) ? v : TOP_PICKS;
     }
 
     static void setTopContent(String v) { put("topContent", v); }

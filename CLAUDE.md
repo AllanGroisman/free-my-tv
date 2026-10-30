@@ -263,6 +263,12 @@ entries; its system pieces are in `PROTECTED`. USB debugging opens ADB on 5555 t
 ## The code
 
 - Java 8 language level, minSdk 26 (Android 8), targetSdk 33. No Gradle, no libraries: only the Android SDK.
+  **This fork (branch `android7`) lowers minSdk to 24** for a Sony BRAVIA 2015 on Android 7.0. There, Continue
+  Watching is left out (`Prefs.TOP_CONTENT`), Inter has no variable weights (bold from 600), Recent Apps opens
+  without its blurred backdrop, and Let's Encrypt's roots ship in `res/raw` (Android 7 lacks them; Open-Meteo uses
+  them). `String.join`, `java.util.Base64` and `java.nio.file` are Android 8+ too: use `TextUtils.join`,
+  `android.util.Base64` and streams. Every Android 8+ call sits behind `SDK_INT >= 26` in a small nested class, so the
+  big classes still verify on Android 7. Check against `platforms/android-24/android.jar` the same way as below.
   Android 9 and older have no RenderNode (`Recording` wraps it, with a Picture there) and no `cmd role`. On Android 8 to 11,
   and on Android 12 and 12L under 3 GB of RAM (`Ui.LEGACY`), the home screen skips the GPU layers, draws blurred
   shadows from cached bitmaps (`Shadows`) and rounds images with a shader instead of clipPath: their GPUs (a Mi Box

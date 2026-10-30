@@ -25,6 +25,7 @@ import android.graphics.drawable.Drawable;
 import android.media.tv.TvContract;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
+import android.os.Build;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -1173,7 +1174,8 @@ final class HomeApps {
         } catch (PackageManager.NameNotFoundException ignored) {
         }
         if (icon == null) return darkTile(TILE_W, TILE_H);
-        boolean adaptive = icon instanceof AdaptiveIconDrawable;
+        Drawable[] adaptiveLayers = Build.VERSION.SDK_INT >= 26 ? Adaptive.layers(icon) : null;
+        boolean adaptive = adaptiveLayers != null;
         // Drawn at the icon's own resolution (the whole tile, so the squircle's edge is smooth too), then filtered down.
         float drawn = TILE_H * (adaptive ? 0.56f * 1.5f : 0.46f);
         float k = detail(icon, drawn, drawn);
@@ -1185,11 +1187,10 @@ final class HomeApps {
         if (adaptive) {
             // Adaptive icon: the layers in a squircle, like an Apple icon. Drawn apart, then filling an anti-aliased
             // rounded rectangle (clipPath leaves stair-stepped corners).
-            AdaptiveIconDrawable a = (AdaptiveIconDrawable) icon;
             Bitmap layers = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
             Canvas lc = new Canvas(layers);
             int pad = size / 4;
-            for (Drawable layer : new Drawable[] {a.getBackground(), a.getForeground()}) {
+            for (Drawable layer : adaptiveLayers) {
                 if (layer == null) continue;
                 layer.setBounds(-pad, -pad, size + pad, size + pad);
                 layer.draw(lc);
@@ -1209,6 +1210,16 @@ final class HomeApps {
             icon.draw(canvas);
         }
         return shrink(b, TILE_W, TILE_H);
+    }
+
+    /** Only this class touches AdaptiveIconDrawable (Android 8+), so HomeApps still verifies on Android 7. */
+    private static final class Adaptive {
+        /** Its background and foreground layers, or null for a legacy icon. */
+        static Drawable[] layers(Drawable icon) {
+            if (!(icon instanceof AdaptiveIconDrawable)) return null;
+            AdaptiveIconDrawable a = (AdaptiveIconDrawable) icon;
+            return new Drawable[] {a.getBackground(), a.getForeground()};
+        }
     }
 
     /**
