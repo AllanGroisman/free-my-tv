@@ -1,6 +1,7 @@
 package io.freemytv;
 
 import android.app.UiModeManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -533,6 +534,10 @@ final class HomeMode {
                 }
             }
             record(adb, disabled);
+            if (Build.VERSION.SDK_INT < 26) {   // Android 7: ours only takes Home once higher-priority homes are off
+                String holder = homeHolder(adb);
+                if (!holder.equals(PKG)) AppLog.w("Home still opens " + (holder.isEmpty() ? "a chooser" : holder));
+            }
             s = state(c);
             s.put("mode", FREE).put("since", System.currentTimeMillis()).put("homeReverted", false)
                     .put("disabled", new JSONArray(sorted(disabled))).put("setupHome", setupHome);
@@ -942,14 +947,25 @@ final class HomeMode {
 
     /**
      * Makes `component` the default home; true once it took. Android 7.0 prints nothing when it works ("Success" came
-     * in 7.1), so an empty answer is checked against which app opens HOME now.
+     * in 7.1), so an empty answer is checked against which app opens HOME now. There a system home with a higher
+     * priority (the Leanback launcher's 2) still wins over the recorded preference until it's turned off, which the
+     * switch does next: the preference being recorded is enough.
      */
     private static boolean setHome(Adb adb, String component) throws IOException {
         String out = adb.shell("cmd package set-home-activity '" + component + "'").trim();
         if (out.contains("Success")) return true;
-        boolean took = out.isEmpty() && homeHolder(adb).equals(packageOf(component));
+        boolean took = out.isEmpty() && (homeHolder(adb).equals(packageOf(component))
+                || Build.VERSION.SDK_INT < 26 && preferredHome(adb, component));
         if (!took) AppLog.w("set-home-activity " + component + ": " + (out.isEmpty() ? "no answer" : out));
         return took;
+    }
+
+    /** Whether Android recorded `component` as the preferred home (Android 7: `dumpsys package preferred-xml`). */
+    private static boolean preferredHome(Adb adb, String component) throws IOException {
+        ComponentName cn = ComponentName.unflattenFromString(component);
+        if (cn == null) return false;
+        String xml = adb.shell("dumpsys package preferred-xml");
+        return xml.contains("\"" + cn.flattenToShortString() + "\"") || xml.contains("\"" + cn.flattenToString() + "\"");
     }
 
     /**
