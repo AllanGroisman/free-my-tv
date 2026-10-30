@@ -15,6 +15,47 @@ Open source. Built with Claude Code. One button to undo.
 
 </div>
 
+> [!NOTE]
+> **This is a fork for Android 7 TVs.** The original [Free My TV](https://github.com/simbasjungles/free-my-tv) needs
+> Android 8 or newer. This fork (branch `android7`) also runs on **Android 7.0**, made and tested on a
+> **Sony BRAVIA 4K 2015** in Brazil. Everything below the fork notes is the original README.
+>
+> **Em português:** este fork faz o Free My TV rodar em TVs com **Android 7.0**. Foi feito e testado numa
+> **Sony BRAVIA 4K 2015** no Brasil. O projeto original exige Android 8 ou mais novo.
+
+## About this fork
+
+**What's different on Android 7**
+
+- **Runs on Android 7.0 (API 24).** Every Android 8+ call is guarded, and kept apart so the rest of the app still runs
+  at full speed on Android 7.
+- **The weather works.** Android 7 doesn't trust Let's Encrypt, which the forecast service uses, so its root
+  certificates ship inside the app.
+- **The switch to Free My TV works.** On Android 7.0, Android answers nothing when it accepts a new home screen, and
+  the stock launcher keeps the Home button until it's turned off. The switch now handles both. *Original* still
+  brings everything back.
+- **Live TV goes straight to the last channel** on the BRAVIA 2015, the way the remote's TV button does. Before, it
+  opened "Tonight's highlights".
+- **A Restart TV button** at the top right. Press OK twice. It needs Free My TV mode.
+- **Left out on Android 7:** Continue Watching (Android 7 has no Watch Next lists), the font's variable weights, and the
+  blur behind Recent Apps.
+
+**Install**
+
+There is no ready-made APK for this fork. You build your own, with your city and your TMDB key:
+
+1. Follow the original [Install](#install) steps for Google TV and Android TV, using this repository's `android7`
+   branch: `git clone -b android7 https://github.com/AllanGroisman/free-my-tv`.
+2. `./build.sh` creates `config.properties`. Fill in your city, your country and your TMDB key, then run
+   `./build.sh` again.
+3. `adb install -r FreeMyTV.apk`, then on the TV: *Free My TV* → *Home Screen* → *Free My TV*.
+
+Tested only on a Sony BRAVIA 4K 2015 (Android 7.0). Other Android 7 TVs may need more changes.
+The LG and Samsung versions are unchanged from the original.
+
+All credit for Free My TV goes to its [original authors](https://github.com/simbasjungles/free-my-tv). This fork keeps
+its [MIT license](LICENSE).
+
 ## What you get
 
 - **No ads.** No sponsored rows, banners or autoplaying promos. Not one.
