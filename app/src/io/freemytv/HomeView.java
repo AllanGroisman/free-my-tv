@@ -54,6 +54,7 @@ import android.view.accessibility.AccessibilityNodeProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -3159,6 +3160,33 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         openRecents();
     }
 
+    private long restartAskedAt;
+
+    /** The Restart TV button: a first OK asks, a second within 4 s reboots through the TV's ADB (Free My TV mode). */
+    private void restartTv() {
+        Context app = getContext().getApplicationContext();
+        if (!Capabilities.adb(app)) {
+            showToast(Ui.tr("Needs Free My TV mode: turn it on in Home Screen."));
+            return;
+        }
+        long now = SystemClock.uptimeMillis();
+        if (now - restartAskedAt > 4_000) {
+            restartAskedAt = now;
+            showToast(Ui.tr("Press OK again to restart the TV"));
+            return;
+        }
+        restartAskedAt = 0;
+        showToast(Ui.tr("Restarting the TV…"));
+        new Thread(() -> {
+            try (Adb adb = Adb.connect(app, 10_000, null)) {
+                adb.shell("reboot");
+            } catch (IOException | RuntimeException e) {   // nothing may escape: :home's watchdog counts it as a crash
+                AppLog.w("restart: " + e);
+                handler.post(() -> showToast(Ui.tr("Couldn't restart the TV")));
+            }
+        }, "restart-tv").start();
+    }
+
     /** Recent Apps over a blurred copy of the screen (without the copy, over a dark veil). */
     private void openRecents() {
         if (recents == null) {
@@ -3245,6 +3273,10 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         }
         if (it.kind == HomeApps.ALL_APPS) {
             openSheet();
+            return;
+        }
+        if (it.kind == HomeApps.RESTART) {
+            restartTv();
             return;
         }
         if (it.kind == HomeApps.INPUTS) {
